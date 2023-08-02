@@ -15,7 +15,7 @@ NUM_MFCCS = 13 # The number of MFCCs to extract from each audio frame
 TRAIN_FOLDER = "noise_train" # The path to the training data folder
 PATTERN = "*.wav" # The file extension of the data files
 TEST_FOLDER = "noise_test" # The path to the test data folder
-FIXED_LENGTH = 100 # Define a fixed length for the arrays
+FIXED_LENGTH = 100 # Fixed length for the arrays
 
 
 # Define a function to load and preprocess an audio file
@@ -40,12 +40,12 @@ def get_label_from_file_name(file_path):
   file_name = file_path_parts[-1]
   # Split the file name by the underscore character
   file_name_parts = file_name.split("_")
-  # # Get the first part of the file name, which is the label
+  # Get the first part of the file name, which is the label
   label = file_name_parts[0]
   # Return the label as a string
   return label
 
-# Define a list of paths to your training audio files
+# Define a list of paths to the training audio files
 train_files = glob.glob(TRAIN_FOLDER + "/" + PATTERN)
 
 # Define an empty list to store the labels
@@ -70,12 +70,10 @@ for file_path in train_files:
   train_data.append(mfccs)
 
 # Convert the train_data list to a numpy array
-# train_data = np.array(train_data, dtype=object)
 train_data = pad_sequences(train_data, maxlen=FIXED_LENGTH, padding='post', truncating='post')
 
 # Do the same for the test audio files
 test_files = glob.glob(TEST_FOLDER + "/" + PATTERN)
-# Fit the label encoder with the test_labels list
 # Define an empty list to store the labels
 test_labels = []
 
@@ -93,6 +91,7 @@ all_labels = train_labels + test_labels
 # Encode all possible labels
 label_encoder.fit(all_labels)
 all_labels = label_encoder.transform(all_labels)
+
 # Transform the train_labels list to numerical labels
 train_labels = label_encoder.transform(train_labels)
 # Transform the test_labels list to numerical labels
@@ -105,7 +104,7 @@ for file_path in test_files:
   test_data.append(mfccs)
 test_data = pad_sequences(test_data, maxlen=FIXED_LENGTH, padding='post', truncating='post')
 
-# Define some hyperparameters
+# Define some parameters
 BATCH_SIZE = 32 # The number of samples per batch for training
 EPOCHS = 200 # The number of epochs (iterations over the whole dataset) for training
 LEARNING_RATE = 0.001 # The learning rate for the optimizer
@@ -184,11 +183,11 @@ test_preds = np.argmax(test_probs, axis=1)
 # Get the true labels by taking the argmax of the one-hot encoded vectors
 test_true = np.argmax(test_labels, axis=1)
 
-# Compute and print the confusion matrix using sklearn.metrics.confusion_matrix
+# Compute and print the confusion matrix
 conf_matrix = sklearn.metrics.confusion_matrix(test_true, test_preds)
 print('Confusion matrix:\n', conf_matrix)
 
-# Compute and print the precision, recall, and f1-score for each class using sklearn.metrics.classification_report
+# Compute and print the precision, recall, and f1-score for each class
 class_report = sklearn.metrics.classification_report(test_true, test_preds)
 print('Classification report:\n', class_report)
 
@@ -198,12 +197,12 @@ test_probs = model.predict(test_data)
 # Get the predicted labels by taking the argmax of the probabilities
 test_preds = np.argmax(test_probs, axis=1)
 
-# Get the original labels by using the label_encoder.inverse_transform method
+# Get the original labels
 test_labels = label_encoder.inverse_transform(test_preds)
 
 # Loop over the test_files list and print or display each file path and its predicted label
 for i in range(len(test_files)):
-  # Get the file path and the label at index i
+  # Get the file path and the label
   file_path = test_files[i]
   label = test_labels[i]
   # Print or display the file path and the label
