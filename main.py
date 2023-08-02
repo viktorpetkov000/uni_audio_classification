@@ -7,12 +7,11 @@ import sklearn.metrics
 from sklearn.preprocessing import LabelEncoder
 from keras.preprocessing.sequence import pad_sequences
 
-# Define some constants
+# Constants
 SAMPLE_RATE = 22050 # The sampling rate of the audio files in Hz
-NUM_CLASSES = 28 # The number of classes you want to classify
-NUM_MFCCS = 13 # The number of MFCCs to extract from each audio frame
 FRAME_LENGTH = 2048 # The length of each audio frame in samples
 HOP_LENGTH = 512 # The hop length between successive frames in samples
+NUM_MFCCS = 13 # The number of MFCCs to extract from each audio frame
 TRAIN_FOLDER = "noise_train" # The path to the training data folder
 PATTERN = "*.wav" # The file extension of the data files
 TEST_FOLDER = "noise_test" # The path to the test data folder
@@ -93,6 +92,7 @@ label_encoder = LabelEncoder()
 all_labels = train_labels + test_labels
 # Encode all possible labels
 label_encoder.fit(all_labels)
+all_labels = label_encoder.transform(all_labels)
 # Transform the train_labels list to numerical labels
 train_labels = label_encoder.transform(train_labels)
 # Transform the test_labels list to numerical labels
@@ -109,6 +109,7 @@ test_data = pad_sequences(test_data, maxlen=FIXED_LENGTH, padding='post', trunca
 BATCH_SIZE = 32 # The number of samples per batch for training
 EPOCHS = 200 # The number of epochs (iterations over the whole dataset) for training
 LEARNING_RATE = 0.001 # The learning rate for the optimizer
+NUM_CLASSES = np.max(all_labels) + 1 # Set the classifiers to the number of unique classifiers
 
 # Define a function to create a CNN model
 def create_cnn_model(input_shape, num_classes):
