@@ -9,6 +9,7 @@ from keras.preprocessing.sequence import pad_sequences
 
 # Define some constants
 SAMPLE_RATE = 22050 # The sampling rate of the audio files in Hz
+NUM_CLASSES = 28 # The number of classes you want to classify
 NUM_MFCCS = 13 # The number of MFCCs to extract from each audio frame
 FRAME_LENGTH = 2048 # The length of each audio frame in samples
 HOP_LENGTH = 512 # The hop length between successive frames in samples
@@ -57,7 +58,6 @@ for file_path in train_files:
   label = get_label_from_file_name(file_path)
   # Append the label to the train_labels list
   train_labels.append(label)
-  
 
 # Define an empty list to store the preprocessed training data
 train_data = []
@@ -93,13 +93,10 @@ label_encoder = LabelEncoder()
 all_labels = train_labels + test_labels
 # Encode all possible labels
 label_encoder.fit(all_labels)
-all_labels = label_encoder.transform(all_labels)
 # Transform the train_labels list to numerical labels
 train_labels = label_encoder.transform(train_labels)
 # Transform the test_labels list to numerical labels
 test_labels = label_encoder.transform(test_labels)
-print(train_labels)
-print(test_labels)
 
 test_data = []
 for file_path in test_files:
@@ -107,14 +104,13 @@ for file_path in test_files:
   mfccs = load_and_preprocess_audio(file_path)
   test_data.append(mfccs)
 test_data = pad_sequences(test_data, maxlen=FIXED_LENGTH, padding='post', truncating='post')
-print(test_data);
 
 # Define some hyperparameters
 BATCH_SIZE = 32 # The number of samples per batch for training
-EPOCHS = 50 # The number of epochs (iterations over the whole dataset) for training
-LEARNING_RATE = 0.01 # The learning rate for the optimizer
-NUM_CLASSES = np.max(all_labels) + 1 # Set the classifiers to the number of unique classifiers
+EPOCHS = 200 # The number of epochs (iterations over the whole dataset) for training
+LEARNING_RATE = 0.001 # The learning rate for the optimizer
 
+# Define a function to create a CNN model
 def create_cnn_model(input_shape, num_classes):
   # Create a sequential model
   model = tf.keras.models.Sequential()
@@ -128,14 +124,14 @@ def create_cnn_model(input_shape, num_classes):
   model.add(tf.keras.layers.MaxPooling2D((2, 2)))
   # Add a dropout layer with dropout rate of 0.25
   model.add(tf.keras.layers.Dropout(0.25))
-  # Repeat the same pattern with different parameters
   model.add(tf.keras.layers.Conv2D(64, (3, 3), padding='same',
                                    activation='relu'))
   model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+  model.add(tf.keras.layers.Dropout(0.25))
+  # Flatten the output of the last convolutional layer
   # Add a GlobalMaxPooling2D layer to reduce the spatial dimensions of the output of the MaxPooling2D layer
   model.add(tf.keras.layers.GlobalMaxPooling2D())
-  # Add a dropout layer with dropout rate of 0.25
-  model.add(tf.keras.layers.Dropout(0.25))
   # Add a dense layer with 128 units and ReLU activation
   model.add(tf.keras.layers.Dense(128, activation='relu'))
   # Add a dropout layer with dropout rate of 0.5
